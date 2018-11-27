@@ -26,4 +26,13 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    /**
+    *encrypt all our password fields
+    */
+
+    public function setPasswordAttribute($password)
+{   
+    $this->attributes['password'] = bcrypt($password);
+}
 }
