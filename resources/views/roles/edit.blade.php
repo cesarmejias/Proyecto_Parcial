@@ -1,12 +1,11 @@
-@extends('layouts.app')
+@extends('admin.layout')
 
 @section('title', '| Edit Role')
 
 @section('content')
 
-<div class='col-lg-4 col-lg-offset-4'>
+<div class='col-lg-10 col-lg-offset-1'>
     <h1><i class='fa fa-key'></i> Edit Role: {{$role->name}}</h1>
-    <hr>
 
     {{ Form::model($role, array('route' => array('roles.update', $role->id), 'method' => 'PUT')) }}
 
@@ -19,10 +18,10 @@
     @foreach ($permissions as $permission)
 
         {{Form::checkbox('permissions[]',  $permission->id, $role->permissions ) }}
-        {{Form::label($permission->name, ucfirst($permission->name)) }}<br>
+        {{Form::label($permission->name, ucfirst($permission->name)) }}
 
     @endforeach
-    <br>
+
     {{ Form::submit('Edit', array('class' => 'btn btn-primary')) }}
 
     {{ Form::close() }}    
