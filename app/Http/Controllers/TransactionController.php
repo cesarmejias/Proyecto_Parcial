@@ -7,12 +7,36 @@ use Illuminate\Http\Request;
 use App\Transaction;
 use Auth;
 use Session;
+use App\Repositories\UserRepository;
+use App\Repositories\TransactionRepository;
+use App\Repositories\CategoryRepository;
+use App\User;
+use App\Category;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
+    /**
+     * GroupRepository $groupRepository
+     */
+    protected $userRepository;
 
-        public function __construct() {
+     /**
+     * TransactionRepository $transactionRepository
+     */
+    protected $transactionRepository;
+
+     /**
+     * CategoryRepository $categoryRepository
+     */
+    protected $CategoryRepository;
+
+        public function __construct(UserRepository $userRepository, TransactionRepository $transactionRepository, CategoryRepository $categoryRepository) {
         $this->middleware(['auth'])->except('index', 'show');
+        $this->userRepository = $userRepository;
+        $this->transactionRepository = $transactionRepository;
+        $this->categoryRepository = $categoryRepository;
+        Carbon::setlocale('es');
     }
 
     /**
@@ -22,7 +46,7 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        $transactions = Transaction::orderby('id', 'desc')->paginate(5); //show only 5 items at a time in descending order
+        $transactions = Transaction::orderby('id', 'asc')->paginate(5); //show only 5 items at a time in descending order
 
         return view('transactions.index', compact('transactions'));
     }
@@ -56,8 +80,41 @@ class TransactionController extends Controller
 
     //Display a successful message upon save
         return redirect()->route('transactions.index')
-            ->with('flash_message', 'Article,
+            ->with('flash_message', 'Transaction,
              '. $transaction->amount.' created');
+    }
+
+
+    $this->validate($request, [
+            'name'=>'required|max:100',
+            'email'=>'required|email|unique:users',
+            'password'=>'required|min:6|confirmed'
+        ]);
+
+        try{
+            DB::beginTransaction();
+
+            $user= $this->userRepository->create($request->only('email', 'name', 'password'));
+
+            $roles = $request['roles']; //Retrieving the roles field
+    //Checking if a role was selected
+        if (isset($roles)) 
+        {
+
+            foreach ($roles as $role) {
+            $role_r = Role::where('id', '=', $role)->firstOrFail();            
+            $user->assignRole($role_r); //Assigning role to user
+            }
+        } 
+
+            DB::commit();
+
+            return redirect()->route('users.index')->with('alert_success', 'Usuario creado satisfactoriamente!');
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withInput()->withErrors($e->getMessage());
+        }
     }
 
     /**
@@ -68,11 +125,11 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-        $transaction = Transaction::findOrFail($id); //Find transaction of id = $id
-
+        
+        $transaction = $this->transactionRepository->getById($id);
+       
         return view ('transactions.show', compact('transaction'));
     }
-
     /**
      * Show the form for editing the specified resource.
      *
@@ -81,7 +138,7 @@ class TransactionController extends Controller
      */
     public function edit($id)
     {
-        $transaction = Transaction::findOrFail($id);
+        $transaction = $this->transactionRepository->getById($id);
 
         return view('transactions.edit', compact('transaction'));
     }
@@ -105,7 +162,7 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.show', 
             $transaction->id)->with('flash_message', 
-            'Article, '. $transaction->amount.' updated');
+            'Transaction, '. $transaction->amount.' updated');
     }
 
     /**
@@ -116,8 +173,8 @@ class TransactionController extends Controller
      */
     public function destroy($id)
     {
-        $transaction = Transaction::findOrFail($id);
-        $transaction->delete();
+        $transaction = $this->transactionRepository->getById($id);
+        $this->delete($user);
 
         return redirect()->route('transactions.index')
             ->with('flash_message',

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-use App\User;
+use App\Repositories\UserRepository;
+use Carbon\Carbon;
+use DB;
+use Exception;
 use Auth;
 
 //Importing laravel-permission models
@@ -14,10 +16,18 @@ use Spatie\Permission\Models\Permission;
 //Enables us to output flash messaging
 use Session;
 
-class UserController extends Controller {
+class UserController extends Controller 
+{
 
-    public function __construct() {
-        $this->middleware(['auth']); //isAdmin middleware lets only users with a //specific permission permission to access these resources
+     /**
+     * UserRepository $userRepository
+     */
+    protected $userRepository;
+
+
+    public function __construct(UserRepository $userRepository) {
+        $this->middleware(['auth']);
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -27,7 +37,7 @@ class UserController extends Controller {
     */
     public function index() {
     //Get all users and pass it to the view
-        $users = User::all(); 
+        $users = $this->userRepository->search([])->get();
         return view('users.index')->with('users', $users);
     }
 
@@ -56,21 +66,30 @@ class UserController extends Controller {
             'password'=>'required|min:6|confirmed'
         ]);
 
-        $user = User::create($request->only('email', 'name', 'password')); //Retrieving only the email and password data
+        try{
+            DB::beginTransaction();
 
-        $roles = $request['roles']; //Retrieving the roles field
+            $user= $this->userRepository->create($request->only('email', 'name', 'password'));
+
+            $roles = $request['roles']; //Retrieving the roles field
     //Checking if a role was selected
-        if (isset($roles)) {
+        if (isset($roles)) 
+        {
 
             foreach ($roles as $role) {
             $role_r = Role::where('id', '=', $role)->firstOrFail();            
             $user->assignRole($role_r); //Assigning role to user
             }
-        }        
-    //Redirect to the users.index view and display message
-        return redirect()->route('users.index')
-            ->with('flash_message',
-             'User successfully added.');
+        } 
+
+            DB::commit();
+
+            return redirect()->route('users.index')->with('alert_success', 'Usuario creado satisfactoriamente!');
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withInput()->withErrors($e->getMessage());
+        }
     }
 
     /**
@@ -90,7 +109,8 @@ class UserController extends Controller {
     * @return \Illuminate\Http\Response
     */
     public function edit($id) {
-        $user = User::findOrFail($id); //Get user with specified id
+        $user = $this->userRepository->getById($id);
+        //$user = User::findOrFail($id); //Get user with specified id
         $roles = Role::get(); //Get all roles
 
         return view('users.edit', compact('user', 'roles')); //pass user and roles data to view
@@ -105,27 +125,39 @@ class UserController extends Controller {
     * @return \Illuminate\Http\Response
     */
     public function update(Request $request, $id) {
-        $user = User::findOrFail($id); //Get role specified by id
-
-    //Validate name, email and password fields    
+       
+       //Validate name, email and password fields    
         $this->validate($request, [
             'name'=>'required|max:100',
             'email'=>'required|email|unique:users,email,'.$id,
             'password'=>'required|min:6|confirmed'
         ]);
-        $input = $request->only(['name', 'email', 'password']); //Retreive the name, email and password fields
-        $roles = $request['roles']; //Retreive all roles
-        $user->fill($input)->save();
 
-        if (isset($roles)) {        
-            $user->roles()->sync($roles);  //If one or more role is selected associate user to roles          
-        }        
-        else {
-            $user->roles()->detach(); //If no role is selected remove exisiting role associated to a user
+         $user = $this->userRepository->getById($id); //Get role specified by id
+
+
+        try {
+            DB::beginTransaction();
+
+            $this->userRepository->update($user, $request->only('name','email','password'));
+
+            $roles = $request['roles']; //Retreive all roles
+
+         if (isset($roles)) {        
+             $user->roles()->sync($roles);  //If one or more role is selected associate user to roles          
+         }        
+         else {
+             $user->roles()->detach(); //If no role is selected remove exisiting role associated to a user
+         }
+
+            DB::commit();
+
+            return redirect()->route('users.index')->with('alert_success', 'Datos de Usuario actualizados satisfactoriamente!');
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withInput()->withErrors($e->getMessage());
         }
-        return redirect()->route('users.index')
-            ->with('flash_message',
-             'User successfully edited.');
     }
 
     /**
@@ -134,10 +166,12 @@ class UserController extends Controller {
     * @param  int  $id
     * @return \Illuminate\Http\Response
     */
-    public function destroy($id) {
+    public function destroy($id, UserRepository $userRepository ) {
     //Find a user with a given id and delete
-        $user = User::findOrFail($id); 
-        $user->delete();
+        //$user = User::findOrFail($id); 
+        //$user->delete();
+        $user = $this->userRepository->getById($id);
+        $this->userRepository->delete($user);
 
         return redirect()->route('users.index')
             ->with('flash_message',
