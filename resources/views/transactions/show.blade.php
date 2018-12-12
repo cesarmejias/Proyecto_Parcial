@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('layouts.app')
 
 @section('title', '| View Transaction')
 
@@ -6,10 +6,20 @@
 
 <div class="container">
 
-    <h1>{{ $transaction->amount }}</h1>
+
+    <h1>Transaccion realizada por: {{ $transaction->user_name }}</h1>
+    <hr>
+    <h1>Categoria: {{ $transaction->category_name }}</h1>
+    <hr>
+    <h1>Cantidad: {{ $transaction->amount }}</h1>
+    <hr>
+    <h1>Creado: {{ $transaction->created_at->diffForHumans() }}</h1>
+    <hr>
+    <h1>Actualizado: {{ $transaction->updated_at->diffForHumans() }}</h1>
     <hr>
     <p class="lead">{{ $transaction->state }} </p>
     <hr>
+    
     {!! Form::open(['method' => 'DELETE', 'route' => ['transactions.destroy', $transaction->id] ]) !!}
     <a href="{{ url()->previous() }}" class="btn btn-primary">Back</a>
     @can('Edit Transaction')

@@ -2,7 +2,7 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="nav navbar-nav">
                         @if (!Auth::guest())
-                            <li><a href="{{ route('transactions.create') }}">New Transaction</a></li>
+                            
                          @endif
                     </ul>
 

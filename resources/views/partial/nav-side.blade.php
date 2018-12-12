@@ -3,6 +3,7 @@
         <!-- Optionally, you can add icons to the links -->
         <li><a href="{{route('users.index')}}"><i class="fa fa-link"></i> <span class="nav-label">Usuarios</span></a></li>
         <li><a href="{{route('transactions.index')}}"><i class="fa fa-link"></i> <span class="nav-label">Transacciones</span></a></li>
+        <li><a href="{{route('categories.index')}}"><i class="fa fa-link"></i> <span class="nav-label">Categorias</span></a></li>
         <li><a href="{{route('roles.index')}}"><i class="fa fa-link"></i> <span class="nav-label">Roles</span></a></li>
         <li><a href="{{route('permissions.index')}}"><i class="fa fa-link"></i> <span class="nav-label">Permisos</span></a></li>
         <li class="treeview">

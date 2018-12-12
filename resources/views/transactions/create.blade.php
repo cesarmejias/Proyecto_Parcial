@@ -1,16 +1,16 @@
 @extends('admin.layout')
 
-@section('title', '| Create New Transaction')
+ @section('title', '| Create New Transaction')
 
-@section('content')
-    <div class="row">
+ @section('content')
+     <div class="row">
         <div class="col-md-8 col-md-offset-2">
 
         <h1>Create New Transaction</h1>
         <hr>
 
-    {{-- Using the Laravel HTML Form Collective to create our form --}}
-        {{ Form::open(array('route' => 'transactions.store')) }}
+   
+         {{ Form::open(array('route' => 'transactions.store')) }}
 
         <div class="form-group">
             {{ Form::label('amount', 'Transaction Amount') }}
@@ -23,4 +23,4 @@
         </div>
     </div>
 
-@endsection
+  @endsection
