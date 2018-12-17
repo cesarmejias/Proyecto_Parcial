@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $fillable = [
-        'amount',
+        'user_id','category_id','amount', 'state'
         ];
 
     public function user()
@@ -44,5 +44,34 @@ class Transaction extends Model
         return $this->user ? $this->user->name : null;
 
     }
+
+
+    public function scopeState($query, $state)
+
+    {
+        if($state)
+
+        return $query->where('state', 'LIKE', "%$state%");
+
+    }
+
+    public function scopeCategory($query, $category)
+
+    {
+        if($category)
+
+        return $query->where('category_id', 'LIKE', "%$category%");
+
+    }
+
+    public function scopeDate($query, $date)
+
+    {
+        if($date)
+
+        return $query->where('created_at', 'LIKE', "%$date%");
+
+    }
+
 
 }

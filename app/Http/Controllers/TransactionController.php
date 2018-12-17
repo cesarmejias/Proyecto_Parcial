@@ -13,6 +13,8 @@ use App\Repositories\CategoryRepository;
 use App\User;
 use App\Category;
 use Carbon\Carbon;
+use DB;
+use Exception;
 
 class TransactionController extends Controller
 {
@@ -44,11 +46,20 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request, CategoryRepository $categoryRepository)
     {
-        $transactions = Transaction::orderby('id', 'asc')->paginate(5); //show only 5 items at a time in descending order
+        $categories = $this->categoryRepository->search([])->get();
+        $state= $request->get('state');
+        $category= $request->get('category');
+        $date= $request->get('date');
 
-        return view('transactions.index', compact('transactions'));
+        $transactions = Transaction::orderby('id', 'asc')
+        ->State($state)
+        ->Category($category)
+        ->Date($date)
+        ->paginate(5);
+
+        return view('transactions.index', compact('transactions', 'categories'));
     }
 
     /**
@@ -56,9 +67,10 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(CategoryRepository $categoryRepository)
     {
-        return view('transactions.create');
+        $categories = $this->categoryRepository->search([])->get();
+        return view('transactions.create', compact('categories'));
     }
 
     /**
@@ -71,51 +83,29 @@ class TransactionController extends Controller
     {
             //Validating amount field
         $this->validate($request, [
+  
             'amount' =>'required',
+            'state' =>'required',
             ]);
 
-        $amount = $request['amount'];
-
-        $transaction = Transaction::create($request->only('amount'));
-
-    //Display a successful message upon save
-        return redirect()->route('transactions.index')
-            ->with('flash_message', 'Transaction,
-             '. $transaction->amount.' created');
-    }
-
-
-    $this->validate($request, [
-            'name'=>'required|max:100',
-            'email'=>'required|email|unique:users',
-            'password'=>'required|min:6|confirmed'
-        ]);
-
-        try{
+        try {
             DB::beginTransaction();
 
-            $user= $this->userRepository->create($request->only('email', 'name', 'password'));
+            $params = array_merge($request->only('amount','state','category_id'), ['user_id' => \Auth::user()->id]);
 
-            $roles = $request['roles']; //Retrieving the roles field
-    //Checking if a role was selected
-        if (isset($roles)) 
-        {
-
-            foreach ($roles as $role) {
-            $role_r = Role::where('id', '=', $role)->firstOrFail();            
-            $user->assignRole($role_r); //Assigning role to user
-            }
-        } 
+            $this->transactionRepository->create($params);
 
             DB::commit();
 
-            return redirect()->route('users.index')->with('alert_success', 'Usuario creado satisfactoriamente!');
+            //Display a su ccessful message upon save
+            return redirect()->route('transactions.index')->with('alert_success', 'Transaction creada satisfactoriamente!');
         } catch (Exception $e) {
             DB::rollBack();
 
             return redirect()->back()->withInput()->withErrors($e->getMessage());
         }
     }
+
 
     /**
      * Display the specified resource.
