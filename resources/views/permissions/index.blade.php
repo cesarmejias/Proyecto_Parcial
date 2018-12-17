@@ -15,7 +15,9 @@
             <thead>
                 <tr>
                     <th>Permissions</th>
+                    @role('Admin')
                     <th>Operation</th>
+                     @endrole
                 </tr>
             </thead>
             <tbody>
@@ -23,12 +25,13 @@
                 <tr>
                     <td>{{ $permission->name }}</td> 
                     <td>
+                        @role('Admin')
                     <a href="{{ URL::to('permissions/'.$permission->id.'/edit') }}" class="btn btn-info pull-left" style="margin-right: 3px;">Edit</a>
 
                     {!! Form::open(['method' => 'DELETE', 'route' => ['permissions.destroy', $permission->id] ]) !!}
                     {!! Form::submit('Delete', ['class' => 'btn btn-danger']) !!}
                     {!! Form::close() !!}
-
+                      @endrole
                     </td>
                 </tr>
                 @endforeach

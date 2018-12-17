@@ -15,7 +15,9 @@
                 <tr>
                     <th>Role</th>
                     <th>Permissions</th>
+                    @role('Admin')
                     <th>Operation</th>
+                     @endrole
                 </tr>
             </thead>
 
@@ -27,11 +29,13 @@
 
                     <td>{{ str_replace(array('[',']','"'),'', $role->permissions()->pluck('name')) }}</td>{{-- Retrieve array of permissions associated to a role and convert to string --}}
                     <td>
+                         @role('Admin')
                     <a href="{{ URL::to('roles/'.$role->id.'/edit') }}" class="btn btn-info pull-left" style="margin-right: 3px;">Edit</a>
 
                     {!! Form::open(['method' => 'DELETE', 'route' => ['roles.destroy', $role->id] ]) !!}
                     {!! Form::submit('Delete', ['class' => 'btn btn-danger']) !!}
                     {!! Form::close() !!}
+                    @endrole
 
                     </td>
                 </tr>

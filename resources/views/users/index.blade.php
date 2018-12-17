@@ -18,7 +18,9 @@
                     <th>Email</th>
                     <th>Date/Time Added</th>
                     <th>User Roles</th>
-                    <th>Operations</th>
+                    @role('Admin')
+                    <th>Operation</th>
+                     @endrole
                 </tr>
             </thead>
 

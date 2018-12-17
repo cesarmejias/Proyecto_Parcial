@@ -15,7 +15,9 @@
                 <tr>
                     <th>Name</th>
                     <th>Description</th>
+                    @role('Admin')
                     <th>Operation</th>
+                     @endrole
                 </tr>
             </thead>
 
@@ -28,11 +30,13 @@
                      <td>{{ $category->description }}
                      </td>
                     <td>
+                        @role('Admin')
                     <a href="{{ URL::to('categories/'.$category->id.'/edit') }}" class="btn btn-info pull-left" style="margin-right: 3px;">Edit</a>
 
                     {!! Form::open(['method' => 'DELETE', 'route' => ['categories.destroy', $category->id] ]) !!}
                     {!! Form::submit('Delete', ['class' => 'btn btn-danger']) !!}
                     {!! Form::close() !!}
+                    @endrole
 
                     </td>
                 </tr>
